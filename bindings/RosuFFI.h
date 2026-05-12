@@ -50,6 +50,22 @@ typedef enum osuscoreorigin
     OSUSCOREORIGIN_WITHOUTSLIDERACC = 2,
     } osuscoreorigin;
 
+typedef enum toosuspicious
+    {
+    /// Notes are too dense time-wise.
+    TOOSUSPICIOUS_DENSITY = 0,
+    /// The map seems too long.
+    TOOSUSPICIOUS_LENGTH = 1,
+    /// Too many objects.
+    TOOSUSPICIOUS_OBJECTCOUNT = 2,
+    /// General red flag.
+    TOOSUSPICIOUS_REDFLAG = 3,
+    /// Too many sliders' positions were suspicious.
+    TOOSUSPICIOUS_SLIDERPOSITIONS = 4,
+    /// Too many sliders had a very high amount of repeats.
+    TOOSUSPICIOUS_SLIDERREPEATS = 5,
+    } toosuspicious;
+
 typedef struct beatmap beatmap;
 
 typedef struct beatmapattributesbuilder beatmapattributesbuilder;
@@ -216,6 +232,15 @@ typedef struct taikodifficultyattributes
     /// [`Beatmap`]: crate::model::beatmap::Beatmap
     bool is_convert;
     } taikodifficultyattributes;
+
+///Option type containing boolean flag and maybe valid data.
+typedef struct optiontoosuspicious
+    {
+    ///Element that is maybe valid.
+    toosuspicious t;
+    ///Byte where `1` means element `t` is valid.
+    uint8_t is_some;
+    } optiontoosuspicious;
 
 ///Option type containing boolean flag and maybe valid data.
 typedef struct optionf64
@@ -593,6 +618,8 @@ float beatmap_od(beatmap* context);
 double beatmap_slider_multiplier(beatmap* context);
 
 double beatmap_slider_tick_rate(beatmap* context);
+
+optiontoosuspicious beatmap_check_suspicious(beatmap* context);
 
 /// Destroys the given instance.
 ///

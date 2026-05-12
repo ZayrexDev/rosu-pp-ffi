@@ -100,6 +100,40 @@ public class RosuFFI {
         }
     }
 
+    public enum TooSuspicious {
+        /// Notes are too dense time-wise.
+        Density(0),
+        /// The map seems too long.
+        Length(1),
+        /// Too many objects.
+        ObjectCount(2),
+        /// General red flag.
+        RedFlag(3),
+        /// Too many sliders' positions were suspicious.
+        SliderPositions(4),
+        /// Too many sliders had a very high amount of repeats.
+        SliderRepeats(5);
+
+        private final int value;
+
+        TooSuspicious(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public static TooSuspicious fromValue(int value) {
+            for (TooSuspicious v : values()) {
+                if (v.value == value) {
+                    return v;
+                }
+            }
+            throw new IllegalArgumentException("Unknown TooSuspicious value: " + value);
+        }
+    }
+
     public interface FFIError {
         int Ok = 0;
         int Null = 100;
@@ -202,7 +236,27 @@ public class RosuFFI {
 
         public static native int beatmap_mode(Pointer context);
 
+        public static native int beatmap_version(Pointer context);
+
         public static native boolean beatmap_is_convert(Pointer context);
+
+        public static native float beatmap_stack_leniency(Pointer context);
+
+        public static native int beatmap_mode(Pointer context);
+
+        public static native float beatmap_ar(Pointer context);
+
+        public static native float beatmap_cs(Pointer context);
+
+        public static native float beatmap_hp(Pointer context);
+
+        public static native float beatmap_od(Pointer context);
+
+        public static native double beatmap_slider_multiplier(Pointer context);
+
+        public static native double beatmap_slider_tick_rate(Pointer context);
+
+        public static native OptionTooSuspicious.ByValue beatmap_check_suspicious(Pointer context);
 
         /// Destroys the given instance.
         ///
@@ -448,6 +502,19 @@ public class RosuFFI {
 
             public static class ByReference extends Sliceu8 implements Structure.ByReference {}
             public static class ByValue extends Sliceu8 implements Structure.ByValue {}
+        }
+
+        @Structure.FieldOrder({"t", "is_some"})
+        public static class OptionTooSuspicious extends Structure {
+            public int t;
+            public byte is_some;
+
+            public static class ByReference extends OptionTooSuspicious implements Structure.ByReference {}
+            public static class ByValue extends OptionTooSuspicious implements Structure.ByValue {}
+
+            public Optional<TooSuspicious> toOptional() {
+                return is_some == 1 ? Optional.of(TooSuspicious.fromValue(t)) : Optional.empty();
+            }
         }
 
         @Structure.FieldOrder({"t", "is_some"})
@@ -791,8 +858,8 @@ public class RosuFFI {
         public static class BeatmapAttributes extends Structure {
             public double ar;         // Approach rate
             public double od;         // Overall difficulty
-            public double cs;         // Circle size
-            public double hp;         // Health drain rate
+            public float cs;          // Circle size
+            public float hp;          // Health drain rate
             public double clock_rate; // Clock rate with respect to mods
             public HitWindows hit_windows; // Nested hit windows structure
 
@@ -899,9 +966,54 @@ public class RosuFFI {
             return Mode.fromValue(RosuPPLib.beatmap_mode(getContext()));
         }
 
+        // Get the version of the Beatmap
+        public int version() {
+            return RosuPPLib.beatmap_version(getContext());
+        }
+
         // Check if the Beatmap is a converted map
         public boolean isConvert() {
             return RosuPPLib.beatmap_is_convert(getContext());
+        }
+
+        // Get the stack leniency of the Beatmap
+        public float stackLeniency() {
+            return RosuPPLib.beatmap_stack_leniency(getContext());
+        }
+
+        // Get the AR of the Beatmap
+        public float ar() {
+            return RosuPPLib.beatmap_ar(getContext());
+        }
+
+        // Get the CS of the Beatmap
+        public float cs() {
+            return RosuPPLib.beatmap_cs(getContext());
+        }
+
+        // Get the HP of the Beatmap
+        public float hp() {
+            return RosuPPLib.beatmap_hp(getContext());
+        }
+
+        // Get the OD of the Beatmap
+        public float od() {
+            return RosuPPLib.beatmap_od(getContext());
+        }
+
+        // Get the slider multiplier of the Beatmap
+        public double sliderMultiplier() {
+            return RosuPPLib.beatmap_slider_multiplier(getContext());
+        }
+
+        // Get the slider tick rate of the Beatmap
+        public double sliderTickRate() {
+            return RosuPPLib.beatmap_slider_tick_rate(getContext());
+        }
+
+        // Check if the Beatmap is suspicious
+        public RosuPPLib.OptionTooSuspicious checkSuspicious() {
+            return RosuPPLib.beatmap_check_suspicious(getContext());
         }
 
         // Getter for the context

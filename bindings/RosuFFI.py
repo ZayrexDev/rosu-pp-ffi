@@ -39,6 +39,7 @@ def init_lib(path):
     c_lib.beatmap_od.argtypes = [ctypes.c_void_p]
     c_lib.beatmap_slider_multiplier.argtypes = [ctypes.c_void_p]
     c_lib.beatmap_slider_tick_rate.argtypes = [ctypes.c_void_p]
+    c_lib.beatmap_check_suspicious.argtypes = [ctypes.c_void_p]
     c_lib.hitobjects_destroy.argtypes = [ctypes.POINTER(ctypes.c_void_p)]
     c_lib.hitobjects_new.argtypes = [ctypes.POINTER(ctypes.c_void_p), ctypes.c_void_p]
     c_lib.hitobjects_len.argtypes = [ctypes.c_void_p]
@@ -153,6 +154,7 @@ def init_lib(path):
     c_lib.beatmap_od.restype = ctypes.c_float
     c_lib.beatmap_slider_multiplier.restype = ctypes.c_double
     c_lib.beatmap_slider_tick_rate.restype = ctypes.c_double
+    c_lib.beatmap_check_suspicious.restype = OptionTooSuspicious
     c_lib.hitobjects_destroy.restype = ctypes.c_int
     c_lib.hitobjects_new.restype = ctypes.c_int
     c_lib.hitobjects_len.restype = ctypes.c_uint32
@@ -317,6 +319,21 @@ class OsuScoreOrigin:
     WithSliderAcc = 1
     #  For scores set on osu!lazer without slider accuracy
     WithoutSliderAcc = 2
+
+
+class TooSuspicious:
+    #  Notes are too dense time-wise.
+    Density = 0
+    #  The map seems too long.
+    Length = 1
+    #  Too many objects.
+    ObjectCount = 2
+    #  General red flag.
+    RedFlag = 3
+    #  Too many sliders' positions were suspicious.
+    SliderPositions = 4
+    #  Too many sliders had a very high amount of repeats.
+    SliderRepeats = 5
 
 
 class FFIError:
@@ -1043,6 +1060,31 @@ class TaikoDifficultyAttributes(ctypes.Structure):
 
  [`Beatmap`]: crate::model::beatmap::Beatmap"""
         return ctypes.Structure.__set__(self, "is_convert", value)
+
+
+class OptionTooSuspicious(ctypes.Structure):
+    """May optionally hold a value."""
+
+    _fields_ = [
+        ("_t", ctypes.c_int),
+        ("_is_some", ctypes.c_uint8),
+    ]
+
+    @property
+    def value(self) -> ctypes.c_int:
+        """Returns the value if it exists, or None."""
+        if self._is_some == 1:
+            return self._t
+        else:
+            return None
+
+    def is_some(self) -> bool:
+        """Returns true if the value exists."""
+        return self._is_some == 1
+
+    def is_none(self) -> bool:
+        """Returns true if the value does not exist."""
+        return self._is_some != 0
 
 
 class Optionf64(ctypes.Structure):
@@ -2507,6 +2549,10 @@ class Beatmap:
     def slider_tick_rate(self, ) -> float:
         """"""
         return c_lib.beatmap_slider_tick_rate(self._ctx, )
+
+    def check_suspicious(self, ) -> OptionTooSuspicious:
+        """"""
+        return c_lib.beatmap_check_suspicious(self._ctx, )
 
 
 
