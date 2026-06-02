@@ -242,8 +242,6 @@ public class RosuFFI {
 
         public static native float beatmap_stack_leniency(Pointer context);
 
-        public static native int beatmap_mode(Pointer context);
-
         public static native float beatmap_ar(Pointer context);
 
         public static native float beatmap_cs(Pointer context);
@@ -375,10 +373,10 @@ public class RosuFFI {
         /// passing any other value results in undefined behavior.
         public static native int gradual_difficulty_destroy(PointerByReference context);
 
-        /// Create a [`GradualDifficulty`] for a map of any mode.
+        /// Create a [GradualDifficulty] for a map of any mode.
         public static native int gradual_difficulty_new(PointerByReference context, Pointer difficulty, Pointer beatmap);
 
-        /// Create a [`GradualDifficulty`] for a [`Beatmap`] on a specific [`GameMode`].
+        /// Create a [GradualDifficulty] for a [Beatmap] on a specific [GameMode].
         public static native int gradual_difficulty_new_with_mode(PointerByReference context, Pointer difficulty, Pointer beatmap, int mode);
 
         public static native OptionDifficultyAttributes gradual_difficulty_next(Pointer context);
@@ -395,10 +393,10 @@ public class RosuFFI {
         /// passing any other value results in undefined behavior.
         public static native int gradual_performance_destroy(PointerByReference context);
 
-        /// Create a [`GradualPerformance`] for a map of any mode.
+        /// Create a [GradualPerformance] for a map of any mode.
         public static native int gradual_performance_new(PointerByReference context, Pointer difficulty, Pointer beatmap);
 
-        /// Create a [`GradualPerformance`] for a [`Beatmap`] on a specific [`GameMode`].
+        /// Create a [GradualPerformance] for a [Beatmap] on a specific [GameMode].
         public static native int gradual_performance_new_with_mode(PointerByReference context, Pointer difficulty, Pointer beatmap, int mode);
 
         /// Process the next hit object and calculate the performance attributes
@@ -482,13 +480,15 @@ public class RosuFFI {
 
 
         @Structure.FieldOrder({"data", "len"})
-        public static class Sliceu8 extends Structure {
+        public static class Sliceu8 extends Structure implements Structure.ByValue {
             public Pointer data;
             public long len;
 
             public Sliceu8(ByteBuffer data) {
                 this.data = Native.getDirectBufferPointer(data);
                 this.len = data.capacity();
+
+                this.write();
             }
 
             public Sliceu8(byte[] data) {
@@ -496,6 +496,8 @@ public class RosuFFI {
                 mem.write(0, data, 0, data.length);
                 this.data = mem;
                 this.len = data.length;
+
+                this.write();
             }
 
             public Sliceu8() {}
@@ -912,11 +914,9 @@ public class RosuFFI {
         // Load the Beatmap from bytes
         public Beatmap(byte[] data) throws FFIException {
             _context = new PointerByReference();  // Initialize _context to a valid Pointer
-            ByteBuffer buffer = ByteBuffer.allocateDirect(data.length);
-            buffer.put(data);
-            buffer.flip();
-            var sliceu8 = new RosuPPLib.Sliceu8(buffer);
+            var sliceu8 = new RosuPPLib.Sliceu8(data);
             int rval = RosuPPLib.beatmap_from_bytes(_context, sliceu8);
+            java.lang.ref.Reference.reachabilityFence(sliceu8);
             if (rval != FFIError.Ok) {
                 throw new FFIException("Error loading beatmap from bytes", rval);
             }
@@ -1403,7 +1403,7 @@ public class RosuFFI {
             };
         }
 
-        /// Create a [`GradualDifficulty`] for a map of any mode.
+        /// Create a [GradualDifficulty] for a map of any mode.
         public static GradualDifficulty New(Difficulty difficulty, Beatmap beatmap) throws FFIException {
             var m = new GradualDifficulty();
             int rval = RosuPPLib.gradual_difficulty_new(m._context, difficulty.getContext(), beatmap.getContext());
@@ -1413,7 +1413,7 @@ public class RosuFFI {
             return m;
         }
 
-        /// Create a [`GradualDifficulty`] for a [`Beatmap`] on a specific [`GameMode`].
+        /// Create a [GradualDifficulty] for a [Beatmap] on a specific [GameMode].
         public static GradualDifficulty NewWithMode(Difficulty difficulty, Beatmap beatmap, Mode mode) throws FFIException {
             var m = new GradualDifficulty();
             int rval = RosuPPLib.gradual_difficulty_new_with_mode(m._context, difficulty.getContext(), beatmap.getContext(), mode.getValue());
@@ -1464,7 +1464,7 @@ public class RosuFFI {
             };
         }
 
-        /// Create a [`GradualDifficulty`] for a map of any mode.
+        /// Create a [GradualDifficulty] for a map of any mode.
         public static GradualPerformance New(Difficulty difficulty, Beatmap beatmap) throws FFIException {
             var m = new GradualPerformance();
             int rval = RosuPPLib.gradual_performance_new(m._context, difficulty.getContext(), beatmap.getContext());
@@ -1474,7 +1474,7 @@ public class RosuFFI {
             return m;
         }
 
-        /// Create a [`GradualDifficulty`] for a [`Beatmap`] on a specific [`GameMode`].
+        /// Create a [GradualDifficulty] for a [Beatmap] on a specific [GameMode].
         public static GradualPerformance NewWithMode(Difficulty difficulty, Beatmap beatmap, Mode mode) throws FFIException {
             var m = new GradualPerformance();
             int rval = RosuPPLib.gradual_performance_new_with_mode(m._context, difficulty.getContext(), beatmap.getContext(), mode.getValue());

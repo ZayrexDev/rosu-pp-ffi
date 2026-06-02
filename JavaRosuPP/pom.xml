@@ -21,6 +21,14 @@
             <artifactId>jna</artifactId>
             <version>5.15.0</version>
         </dependency>
+
+        <!-- JUnit 5 库 -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -63,6 +71,13 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- 配置 Maven Surefire 插件用于运行测试 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
             </plugin>
         </plugins>
     </build>
